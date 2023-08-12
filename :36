@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"errors"
 )
 
 type runner struct {
@@ -38,7 +37,7 @@ func readNthLineFromFile(filepath string, line int) (string, error) {
 }
 
 func getRandomFirstName() string {
-	return ""
+
 }
 
 func newRunner() *runner {
@@ -52,7 +51,7 @@ func newRunner() *runner {
 }
 
 func main() {
-	line, err := readNthLineFromFile("./countries.dat", 1000)
+	line, err := readNthLineFromFile("./countries.dat", 10)
 	checkError(err)
-	fmt.Println(line)
+	fmt.PrintLn(line)
 }
