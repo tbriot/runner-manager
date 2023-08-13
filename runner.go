@@ -1,11 +1,16 @@
 package main
 
-import (
+import ( 
+	"math/rand"
 	"bufio"
 	"fmt"
 	"os"
 	"errors"
 )
+
+const NUMBER_OF_COUNTRIES int = 138
+const NUMBER_OF_FIRSTNAMES int = 100 
+const NUMBER_OF_LASTNAMES int = 100
 
 type runner struct {
 	firstname string
@@ -38,21 +43,37 @@ func readNthLineFromFile(filepath string, line int) (string, error) {
 }
 
 func getRandomFirstName() string {
-	return ""
+	firstname, err := readNthLineFromFile("./firstnames.dat", rand.Intn(NUMBER_OF_FIRSTNAMES+1))
+	checkError(err)
+	return firstname
 }
 
-func newRunner() *runner {
+func getRandomLastName() string {
+	lastname, err := readNthLineFromFile("./lastnames.dat", rand.Intn(NUMBER_OF_LASTNAMES+1))
+	checkError(err)
+	return lastname
+}
+
+func getRandomCountry() string {
+	country, err := readNthLineFromFile("./countries.dat", rand.Intn(NUMBER_OF_COUNTRIES+1))
+	checkError(err)
+	return country 
+}
+
+func newRandomRunner() *runner {
 	r := runner{
-		firstname: "John",
-		lastname:  "Doe",
-		country:   "Canada",
+		firstname: getRandomFirstName(),
+		lastname:  getRandomLastName(),
+		country:   getRandomCountry(),
 		id:        1,
 	}
 	return &r
 }
 
 func main() {
-	line, err := readNthLineFromFile("./countries.dat", 1000)
-	checkError(err)
-	fmt.Println(line)
+//	line, err := readNthLineFromFile("./countries.dat", 1000)
+	for i :=1; i <= 10; i++ {
+		r := newRandomRunner()
+		fmt.Println(r)
+	}
 }
