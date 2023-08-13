@@ -1,79 +1,60 @@
 package main
 
-import ( 
-	"math/rand"
-	"bufio"
+import (
+	"database/sql"
 	"fmt"
-	"os"
-	"errors"
+	
+	_ "github.com/mattn/go-sqlite3"
 )
 
-const NUMBER_OF_COUNTRIES int = 138
-const NUMBER_OF_FIRSTNAMES int = 100 
-const NUMBER_OF_LASTNAMES int = 100
-
 type runner struct {
+	id        int
 	firstname string
 	lastname  string
 	country   string
-	id        int
 }
 
-func checkError(e error) {
-	if e != nil {
-		panic(e)
-	}
+func addRunner(db *sql.DB, newRunner runner) {
+	stmt, _ := db.Prepare("INSERT INTO runner (id, firstname, lastname, country) VALUES (?, ?, ?, ?)")
+	stmt.Exec(nil, newRunner.firstname, newRunner.lastname, newRunner.country)
+	defer stmt.Close()
+
+	fmt.Printf("Add %v %v\n", newRunner.firstname, newRunner.lastname)
 }
 
-func readNthLineFromFile(filepath string, line int) (string, error) {
-	f, err := os.Open(filepath)
+func getAllRunners(db *sql.DB) []runner {
+	stmt, err := db.Prepare("SELECT id, firstname, lastname, country FROM runner")
 	checkError(err)
-	defer f.Close()
+	defer stmt.Close()
 
-	scanner := bufio.NewScanner(f)
-
-	for l := 1; scanner.Scan(); l++ {
-		if l == line {
-			return scanner.Text(), nil
-		}
-	}
-	checkError(scanner.Err())
-
-	return "", errors.New("Could not find line in file")
-}
-
-func getRandomFirstName() string {
-	firstname, err := readNthLineFromFile("./firstnames.dat", rand.Intn(NUMBER_OF_FIRSTNAMES+1))
+	rows, err := stmt.Query()
 	checkError(err)
-	return firstname
-}
 
-func getRandomLastName() string {
-	lastname, err := readNthLineFromFile("./lastnames.dat", rand.Intn(NUMBER_OF_LASTNAMES+1))
-	checkError(err)
-	return lastname
-}
+	var runners []runner
 
-func getRandomCountry() string {
-	country, err := readNthLineFromFile("./countries.dat", rand.Intn(NUMBER_OF_COUNTRIES+1))
-	checkError(err)
-	return country 
-}
-
-func newRandomRunner() *runner {
-	r := runner{
-		firstname: getRandomFirstName(),
-		lastname:  getRandomLastName(),
-		country:   getRandomCountry(),
-		id:        1,
+	for rows.Next() {
+		var currentRunner runner
+		rows.Scan(&currentRunner.id, &currentRunner.firstname, &currentRunner.lastname, &currentRunner.country)
+		runners = append(runners, currentRunner)
 	}
-	return &r
+	fmt.Println("Select all runners")
+
+	return runners
 }
 
-func main() {
-//	line, err := readNthLineFromFile("./countries.dat", 1000)
-	for i :=1; i <= 10; i++ {
-		r := newRandomRunner()
-		fmt.Println(r)
-	}
-}
+
+func deleteRunner(db *sql.DB, idToDelete int) int64 {
+	stmt, err := db.Prepare("DELETE FROM runner where id = ?")
+	checkError(err)
+	defer stmt.Close()
+
+	res, err := stmt.Exec(idToDelete)
+	checkError(err)
+
+	affected, err := res.RowsAffected()
+	checkError(err)
+
+	fmt.Printf("Delete runner with id=%d\n", idToDelete)
+
+	return affected
+}	
