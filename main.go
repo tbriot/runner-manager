@@ -1,6 +1,7 @@
 package main
 
 import ( 
+	"net/http"
 	"database/sql"
 	"math/rand"
 	"bufio"
@@ -69,15 +70,19 @@ func main() {
 	checkError(err)
 	defer db.Close()
 
-	r := newRandomRunner()
+	//r := newRandomRunner()
 	//fmt.Println(r)
 	//fmt.Println(*r)
-	addRunner(db, *r)
+	//addRunner(db, *r)
 
 	runners := getAllRunners(db)
 	for _, r := range(runners) { 
 		fmt.Println(r)
 	}
 	
-	deleteRunner(db, 1)
+	fs := http.FileServer(http.Dir("html/"))
+
+	http.Handle("/", fs)
+	http.ListenAndServe(":8080", nil)
+
 }
